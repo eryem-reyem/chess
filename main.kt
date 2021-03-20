@@ -8,10 +8,10 @@ fun main(){
     File("data/data.txt").writeText(LocalDateTime.now().toString())
 
     // lädt ein neues Spiel
-    // game.board.fen.fen2Board(game.board)
+    game.board.fen.fen2Board(game.board)
 
     //lädt ein angefangenes Spiel
-    game.board.fen.loadFen(game.board, "4k3/8/8/5q2/8/8/r7/4K3/ b - - 0 3")
+    // game.board.fen.loadFen(game.board, "4k3/8/8/5q2/8/8/r7/4K3/ b - - 0 3")
     // enPassant      --- rnbqkbnr/ppppppp1/8/4P3/6Pp/8/PPPP1P1P/RNBQKBNR/ b KQkq g3 0 3
 
     // lädt die Figuren aus "board.piecePositions" auf "board.board"
@@ -28,8 +28,23 @@ fun main(){
         // wenn dem gegnerischen König Schach gegeben wurde wird geprüft ob dieses verhindert werden kann
         if(kingIsCheck != null){
             game.board.defendCheck = game.positionsToDefendCheck(kingIsCheck)
-            println(game.board.defendCheck)
-            for(i in game.board.piecePositions) println(i)
+
+            val allMoves = game.board.allPossibleMoves(game.board)
+            if(piece.color ==  'w'){
+                for(values in allMoves.second.values){
+                    for(position in values){
+                        if(position in game.board.defendCheck) game.board.defendCheck.remove(position)
+                    }
+                }
+            }
+            if(piece.color ==  'b'){
+                for(values in allMoves.first.values){
+                    for(position in values){
+                        if(position in game.board.defendCheck) game.board.defendCheck.remove(position)
+                    }
+                }
+            }
+            println(allMoves)
             // beendet das Spiel wenn der Gegner schachmatt ist.
             if(game.board.defendCheck.size == 0){
                 println("Schachmatt! ${game.player} hat gewonnen!")
@@ -40,7 +55,7 @@ fun main(){
         // kreiert fen und speichert in in data.txt
         game.board.fen.saveFen(game.board.fen.board2Fen(game.board, piece.color))
 
-
+        println(game.board.defendCheck)
     }
 
 

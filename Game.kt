@@ -7,17 +7,8 @@ class Game {
 
 
 
-    fun setMove(a: Int?, b: Int?, possibleMoves: List<Pair<Int, Int>>, piece: Player): Boolean{
-        // setzt den status des boards zurück, der mit show moves veränderd wurde
-        for(i in possibleMoves){
-            if(board.board[i.first][i.second].status.equals("|(_)|") ){
-                board.board[i.first][i.second].emptyField()
-            }
-            else{
-                board.board[i.first][i.second].char2Piece(board.board[i.first][i.second].status[2])
-            }
-        }
 
+    fun setMove(a: Int?, b: Int?, possibleMoves: List<Pair<Int, Int>>, piece: Player): Boolean{
         if(Pair<Int?, Int?>(a, b) in possibleMoves){
             // Schlägt eine gegnerische Figur, wenn diese auf dem Zugfeld steht
             if(Pair<Int, Int>(a!!, b!!) in board.piecePositions) capturePiece(a , b)
@@ -207,7 +198,7 @@ class Game {
             board.printBoard()
             var piece: Player
 
-
+            // Verändert "Field" im "board" um mögliche Züge einer Figur in der Shell darzustellen
             fun showPossibleMoves(possibleMoves: List<Pair<Int, Int>>){
 
                 for(i in possibleMoves){
@@ -220,8 +211,22 @@ class Game {
                     }
                 }
                 return board.printBoard()
-            }  // Verändert "Field" im "board" um mögliche Züge einer Figur in der Shell darzustellen
+            }
 
+            // setzt den status des boards zurück, der mit show moves veränderd wurde
+            fun returnShowPossibleMoves(possibleMoves: List<Pair<Int, Int>>){
+
+                for(i in possibleMoves){
+                    if(board.board[i.first][i.second].status.equals("|(_)|") ){
+                        board.board[i.first][i.second].emptyField()
+                    }
+                    else{
+                        board.board[i.first][i.second].char2Piece(board.board[i.first][i.second].status[2])
+                    }
+                }
+            }
+
+            // für Printausgabe
             fun setPlayer(){
                 if(activeColor == "w"){
                     player = "Player 1"
@@ -231,14 +236,12 @@ class Game {
                     player = "Player 2"
                     color = 'b'
                 }
-            } // für Printausgabe
+            }
 
 
             setPlayer()
 
-
             val input = board.inputPositionToXy(player, "welche Figur willst du bewegen?")
-            // println(board.defendCheck) // positionen die Schachmatt verhindern
 
             if(input in board.piecePositions && board.piecePositions[input]?.color == color){
                 piece = board.piecePositions[input]!!
@@ -262,10 +265,11 @@ class Game {
                 continue
             }
 
-
             showPossibleMoves(possibleMoves) // Printausgabe ändert werte im Bord
 
             val inputTo = board.inputPositionToXy(player,  "wohin willst du ziehen?")
+
+            returnShowPossibleMoves(possibleMoves)
 
             if (setMove(inputTo.first, inputTo.second, possibleMoves, piece)) return piece
 
