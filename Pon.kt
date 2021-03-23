@@ -24,7 +24,7 @@ class Pon(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(posit
             for(i in newMoves){
                 val a: Int = position.first + i.first
                 val b: Int = position.second + i.second
-                if(!positionOnBoard(a,b)) break
+                if(Pair(a, b) !in board.coordinates) break
                 if (board.board[a][b].status != "| _ |") {
                     if(color == 'w' && checkColor(board, a, b) == 'w') break
                     else if(color == 'b' && checkColor(board, a, b) == 'b') break
@@ -37,7 +37,7 @@ class Pon(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(posit
             for (j in 1..newMaxSteps) {
                 val a: Int = position.first + i.first * j
                 val b: Int = position.second + i.second * j
-                if(!positionOnBoard(a,b)) break
+                if(Pair(a, b) !in board.coordinates) break
                 if (board.board[a][b].status == "| _ |") {
                     possibleMoves.add(Pair(a, b))
                 } else break

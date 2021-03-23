@@ -13,7 +13,7 @@ class King(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(posi
     override val color = color
     var castelingPositions = mutableListOf<Pair<Int, Int>>()
 
-    override fun realPossible(board: Board, possibleMoves: MutableList<Pair<Int, Int>>): MutableList<Pair<Int, Int>> {
+    /*override fun realPossible(board: Board, possibleMoves: MutableList<Pair<Int, Int>>): MutableList<Pair<Int, Int>> {
         if(board.defendCheck.size != 0 && possibleMoves.size != 0){
             if(board.defendCheck.size >1) {
                 var notPossible = mutableListOf<Pair<Int, Int>>()
@@ -30,7 +30,7 @@ class King(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(posi
             }
         }
         return possibleMoves
-    }
+    }*/
 
     fun getCastelingPositions(board: Board){
         if(color == 'w' && 'K' in board.fen.castling && board.board[7][5].status == "| _ |" &&
@@ -60,7 +60,7 @@ class King(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(posi
             for (j in 1..maxSteps) {
                 val a: Int = position.first + i.first * j
                 val b: Int = position.second + i.second * j
-                if(!positionOnBoard(a,b)) break
+                if(Pair(a, b) !in board.coordinates) break
                 if (board.board[a][b].status == "| _ |") {
                     possibleMoves.add(Pair(a, b))
                 } else {
@@ -88,108 +88,5 @@ class King(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(posi
         return possibleMoves
     }
 
-    fun castle(board: Board, position: Pair<Int, Int>): Boolean {
-        if(position == Pair(0, 2)){
-            println("Black castled Queenside")
-            val king = board.piecePositions[Pair(0, 4)]
-            val rook = board.piecePositions[Pair(0, 0)]
 
-            if (king != null && rook != null) {
-                // für König
-                board.piecePositions.put(Pair(0, 2), king)
-                board.piecePositions.minusAssign(Pair(0, 4))
-                board.board[0][2].char2Piece(king.sign)
-                board.board[0][4].emptyField()
-                board.board[0][6].emptyField()
-                king.position = Pair(0, 2)
-
-                // für rook
-                board.piecePositions.put(Pair(0, 3), rook)
-                board.piecePositions.minusAssign(Pair(0, 0))
-                board.board[0][3].char2Piece(rook.sign)
-                board.board[0][0].emptyField()
-                rook.position = Pair(0, 3)
-
-
-                return true
-            }
-        } // black Quennside
-
-        else if(position == Pair(0, 6)){
-            println("Black castled Kingside")
-            val king = board.piecePositions[Pair(0, 4)]
-            val rook = board.piecePositions[Pair(0, 7)]
-
-            if (king != null && rook != null) {
-                // für König
-                board.piecePositions.put(Pair(0, 6), king)
-                board.piecePositions.minusAssign(Pair(0, 4))
-                board.board[0][6].char2Piece(king.sign)
-                board.board[0][4].emptyField()
-                board.board[0][2].emptyField()
-                king.position = Pair(0, 6)
-
-                // für rook
-                board.piecePositions.put(Pair(0, 5), rook)
-                board.piecePositions.minusAssign(Pair(0, 7))
-                board.board[0][5].char2Piece(rook.sign)
-                board.board[0][7].emptyField()
-                rook.position = Pair(0, 5)
-
-                return true
-            }
-        } // black Kingside
-
-        else if(position == Pair(7, 2)){
-            println("White castled Queenside")
-            val king = board.piecePositions[Pair(7, 4)]
-            val rook = board.piecePositions[Pair(7, 0)]
-
-            if (king != null && rook != null) {
-                // für König
-                board.piecePositions.put(Pair(7, 2), king)
-                board.piecePositions.minusAssign(Pair(7, 4))
-                board.board[7][2].char2Piece(king.sign)
-                board.board[7][4].emptyField()
-                board.board[7][6].emptyField()
-                king.position = Pair(7, 2)
-
-                // für rook
-                board.piecePositions.put(Pair(7, 3), rook)
-                board.piecePositions.minusAssign(Pair(7, 0))
-                board.board[7][3].char2Piece(rook.sign)
-                board.board[7][0].emptyField()
-                rook.position = Pair(7, 3)
-
-                return true
-            }
-        } // withe Quennside
-
-        else if(position == Pair(7, 6)){
-            println("White castled Kingside")
-            val king = board.piecePositions[Pair(7, 4)]
-            val rook = board.piecePositions[Pair(7, 7)]
-
-            if (king != null && rook != null) {
-                // für König
-                board.piecePositions.put(Pair(7, 6), king)
-                board.piecePositions.minusAssign(Pair(7, 4))
-                board.board[7][6].char2Piece(king.sign)
-                board.board[7][4].emptyField()
-                board.board[7][2].emptyField()
-                king.position = Pair(7, 6)
-
-                // für rook
-                board.piecePositions.put(Pair(7, 5), rook)
-                board.piecePositions.minusAssign(Pair(7, 7))
-                board.board[7][5].char2Piece(rook.sign)
-                board.board[7][7].emptyField()
-                rook.position = Pair(7, 5)
-
-                return true
-            }
-        } // black Kingside
-
-        return false
-    }
 }

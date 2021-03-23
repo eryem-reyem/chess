@@ -98,4 +98,19 @@ class Fen {
         File("data/data.txt").appendText("\n $fen")
     }
 
+    fun setEnPassant(input: Pair<Int, Int>, board: Board, color: Char, possibleMoves: List<Pair<Int, Int>>) {
+        val rightSide = Pair(input.first, input.second + 1)
+        val leftSide = Pair(input.first, input.second - 1)
+        val pieceRight = board.piecePositions[rightSide]
+        val pieceLeft = board.piecePositions[leftSide]
+
+        if (pieceRight is Pon && pieceRight.color != color ||
+            pieceLeft is Pon && pieceLeft.color != color
+        ) {
+            enPassant = board.xyToBoardposition(possibleMoves[0])
+
+        } else enPassant = "-"
+    }
+
+
 }

@@ -4,12 +4,6 @@ abstract class Player(var position: Pair<Int, Int>, val sign: Char) {
     abstract val maxSteps: Int
     abstract val color: Char
 
-    fun positionOnBoard(a: Int, b:Int): Boolean{
-        if (a < 0 || b < 0 || a > 7 || b > 7) {
-            return false
-        }
-        return true
-    }    // check für "getPossibleMoves" ob nächste Position noch auf dem Board ist
 
     fun checkColor(board: Board, a: Int, b: Int): Char{
         if(board.board[a][b].status[2].isUpperCase()) return 'w'
@@ -34,7 +28,9 @@ abstract class Player(var position: Pair<Int, Int>, val sign: Char) {
             for (j in 1..maxSteps) {
                 val a: Int = position.first + i.first * j
                 val b: Int = position.second + i.second * j
-                if(!positionOnBoard(a,b)) break
+
+                if(Pair(a, b) !in board.coordinates) break
+
                 if (board.board[a][b].status == "| _ |") {
                     possibleMoves.add(Pair(a, b))
                 } else {

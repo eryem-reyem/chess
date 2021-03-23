@@ -1,277 +1,143 @@
-class Game {
+class Game: Move(){
     val board: Board = Board()
-    var capturedWhitePieces = mutableListOf<Player>()
-    var capturedBlackPieces = mutableListOf<Player>()
     var color: Char = 'w'
     var player = ""
+    var gameActiv = true
+    var isCheck = false
+    var isCheckmate = false
+    lateinit var piece: Player
+    lateinit var possibleMoves: List<Pair<Int, Int>>
 
 
 
+    fun checkGamestatus(piece: Player){
 
-    fun setMove(a: Int?, b: Int?, possibleMoves: List<Pair<Int, Int>>, piece: Player): Boolean{
-        if(Pair<Int?, Int?>(a, b) in possibleMoves){
-            // Schlägt eine gegnerische Figur, wenn diese auf dem Zugfeld steht
-            if(Pair<Int, Int>(a!!, b!!) in board.piecePositions) capturePiece(a , b)
+        fun checkKingIsCheck(piece: Player) {
+            var king: Player? = null
+            var tempPossibleMoves = mapOf<Player, List<Pair<Int, Int>>>()
 
-            // Schlägt einen Pon En Passant
-            if(piece is Pon && board.xyToBoardposition(Pair(a, b)) == board.fen.enPassant){
-                if(piece.color == 'b'){
-                    capturePiece(a-1, b)
-                    board.board[a-1][b].emptyField()
-                }
-                else if(piece.color == 'w'){
-                    capturePiece(a+1, b)
-                    board.board[a+1][b].emptyField()
-                }
+            for(a_piece in board.piecePositions){
+                if(a_piece.value is King && a_piece.value.color != piece.color) king = a_piece.value
             }
 
-            // Setzt En Passant Variable in der Klasse Fen
-            if(piece is Pon && possibleMoves.size == 2 && possibleMoves[1] == Pair<Int, Int>(a!!, b!!)){
-                val rightSide = Pair(a, b+1)
-                val leftSide = Pair(a, b-1)
-                val pieceRight = board.piecePositions[rightSide]
-                val pieceLeft = board.piecePositions[leftSide]
+            if(piece.color == 'w') tempPossibleMoves = tempPossibleMoves(board).first
+            else tempPossibleMoves = tempPossibleMoves(board).second
 
-                if(pieceRight is Pon && pieceRight.color != piece.color ||
-                    pieceLeft is Pon && pieceLeft.color != piece.color){
-                    board.fen.enPassant = board.xyToBoardposition(possibleMoves[0])
-
-                }else board.fen.enPassant = "-"
-
-            } else board.fen.enPassant = "-"
-
-            // Casteling
-            if(board.fen.castling != "-"){
-                if(piece is King) {
-                    var castle: Boolean = false
-                    if (piece.castelingPositions.size != 0 && Pair<Int, Int>(a!!, b!!) in piece.castelingPositions) {
-                        castle = piece.castle(board, Pair<Int, Int>(a!!, b!!))
-                    }
-
-                    if (piece.color == 'w') {
-                        if ("Q" in board.fen.castling) board.fen.castling = board.fen.castling.replace("Q", "")
-                        if ("K" in board.fen.castling) board.fen.castling = board.fen.castling.replace("K", "")
-                    }           // removes castling on fen for white
-                    else if (piece.color == 'b') {
-                        if ("q" in board.fen.castling) board.fen.castling = board.fen.castling.replace("q", "")
-                        if ("k" in board.fen.castling) board.fen.castling = board.fen.castling.replace("k", "")
-                    }       // removes castling on fen for black
-
-                    if (castle) return castle
-                }
-
-                if(piece is Rook){
-                    if("k" in board.fen.castling && piece.position == Pair(0, 7)) board.fen.castling = board.fen.castling.replace("k", "")
-                    else if("q" in board.fen.castling && piece.position == Pair(0, 0)) board.fen.castling =  board.fen.castling.replace("q", "")
-                    else if("K" in board.fen.castling && piece.position == Pair(7, 7)) board.fen.castling = board.fen.castling.replace("K", "")
-                    else if("Q" in board.fen.castling && piece.position == Pair(7, 0)) board.fen.castling = board.fen.castling.replace("Q", "")
-                    println(board.fen.castling)
-                }
-            }
-
-            board.board[a][b].char2Piece(piece.sign)
-            board.board[piece.position.first][piece.position.second].emptyField()
-            board.piecePositions.minusAssign(Pair<Int, Int>(piece.position.first, piece.position.second))
-            board.piecePositions.put(Pair(a, b), piece)
-            piece.position = Pair(a, b)
-            println("${piece.sign} zieht auf ${board.xyToBoardposition(piece.position)}")
-            println("Gültiger Zug! Nächster Spieler.")
-
-            if(piece.color == 'b') board.fen.fullMoveNumber += 1
-
-            board.fen.halfMoveClock += 1
-            if(piece is Pon) board.fen.halfMoveClock = 0
-
-            return true
-        }
-        else{
-            println("Kein gültiger Zug!")
-            return false
-        }
-    }
-
-    fun capturePiece(a: Int, b: Int){
-        val toCapture = board.piecePositions[Pair(a,b)]
-
-        if (toCapture != null) {                            // Setzt Piece auf Tod und fügt es einer Liste für tote Pieces zu
-            toCapture.isDead = true
-            if(toCapture.color == 'w') capturedWhitePieces.add(toCapture)
-            else capturedBlackPieces.add(toCapture)
-
-            board.piecePositions.remove(Pair(a,b))             // löscht das geschlagene Piece aus dem Dictionary/Map mit activen Figuren
-
-            board.fen.halfMoveClock = 0
-
-            println("Capture Piece: ${toCapture.sign}")
-            println("Geschlagene weiße Figuren ${capturedWhitePieces}")
-            println("Geschlagene schwarze Figuren $capturedBlackPieces")
-        }
-    }
-
-    // gibt die Figur zurück die dem König schach gibt und den König der im Schach steht
-    fun kingIsCheck(piece: Player): Pair<Player, Player>? {
-        val allPossibleMoves = board.allPossibleMoves(board)
-        var blackKing: Player? = null
-        var whiteKing: Player? = null
-
-        // Pair<Boolean, Pair<Pair<Int, Int>, Pair<Int, Int>>
-        for(element in board.piecePositions.values){
-            if(element is King){
-                if(element.color == 'w') whiteKing = element
-                else  blackKing = element
-            }
-        }
-
-        if(blackKing != null && whiteKing != null) {
-            if (piece.color == 'w') {
-                for (list in allPossibleMoves.first) {
-                    for (element in list.value) {
-                        if (element == blackKing.position) {
-                            return Pair(blackKing, piece)
+            if(king != null){
+                for(a_piece in tempPossibleMoves){
+                    for(a_move in a_piece.value){
+                        if(a_move == king.position){
+                            isCheck = true
+                            break
                         }
                     }
+                    if(isCheck) break
                 }
-            } else {
-                for (list in allPossibleMoves.second) {
-                    for (element in list.value) {
-                        if (element == whiteKing.position) {
-                            return Pair(whiteKing, piece)
-                        }
+            }
+        }
+
+        fun checkKingIsCheckmate(piece: Player){
+            var king: Player? = null
+            var tempPossibleMoves = mapOf<Player, List<Pair<Int, Int>>>()
+
+            for(a_piece in board.piecePositions){
+                if(a_piece.value is King && a_piece.value.color != piece.color) king = a_piece.value
+            }
+
+            if(piece.color == 'w') tempPossibleMoves = tempPossibleMoves(board).second
+            else tempPossibleMoves = tempPossibleMoves(board).first
+
+
+            if(king != null){
+                for(a_piece in tempPossibleMoves){
+                    for(a_move in a_piece.value){
+                        isCheckmate = !checkMyKing(board, a_move, a_piece.key, king!!)
+                        if(!isCheckmate) break
                     }
-                }
-            }
-        }
-        return null
-    }
-
-    fun positionsToDefendCheck(kingIsCheck: Pair<Player, Player>): MutableList<Pair<Int, Int>> {
-        val kingPosition = kingIsCheck.first.position
-        val attackerPosition = kingIsCheck.second.position
-
-        var defendingPositons = mutableListOf<Pair<Int, Int>>()
-
-        var smalestX: Int
-        var biggestX: Int
-
-        var smalestY: Int
-        var biggestY: Int
-
-        if(kingPosition.first < attackerPosition.first){
-            smalestY = kingPosition.first
-            biggestY = attackerPosition.first
-        } else {
-            smalestY = attackerPosition.first
-            biggestY = kingPosition.first
-        }
-
-        if(kingPosition.second < attackerPosition.second){
-            smalestX = kingPosition.second
-            biggestX = attackerPosition.second
-        }else {
-            smalestX = attackerPosition.second
-            biggestX = kingPosition.second
-        }
-
-        for(y in smalestY..biggestY){
-            for(x in smalestX..biggestX){
-                defendingPositons.add(Pair(y, x))
-            }
-        }
-
-        defendingPositons.minusAssign(kingPosition)
-
-        for(piece in board.piecePositions.values){
-            if(piece.color != kingIsCheck.second.color){
-                val possibleMoves = piece.getPossibleMoves(board)
-                for(position in possibleMoves){
-                    if(position in defendingPositons) defendingPositons.minusAssign(position)
+                    if(!isCheckmate) break
                 }
             }
         }
 
-        return defendingPositons
+
+        checkKingIsCheck(piece)
+
+        if(isCheck) checkKingIsCheckmate(piece)
+
+        if(isCheckmate){
+            isCheck = false
+            gameActiv = false
+        }
+
+
     }
 
     fun movePlayer(activeColor: String): Player {
-        if(board.fen.castling == "") board.fen.castling = "-"
+        color = activeColor.single()
+
+        if(activeColor == "w") player = "Player 1" else player = "Player 2"
+
         while (true){
+            // Nutzereingbe welche figur ziehen soll
+            fun pieceFrom(): Boolean {
+                val input = board.inputPositionToXy(player, "welche Figur willst du bewegen?")
+
+                if(input in board.piecePositions && board.piecePositions[input]?.color == color){
+                    piece = board.piecePositions[input]!!
+                }
+                else {
+                    println("Not a valid Move!")
+                    return false
+                }
+                return true
+            }
+
+
+            // shell Ausgabe des Boards
             board.printBoard()
-            var piece: Player
-
-            // Verändert "Field" im "board" um mögliche Züge einer Figur in der Shell darzustellen
-            fun showPossibleMoves(possibleMoves: List<Pair<Int, Int>>){
-
-                for(i in possibleMoves){
-                    if(board.board[i.first][i.second].status == "| _ |"){
-                        board.board[i.first][i.second].string2Piece("|(_)|")
-                    }
-                    else{
-                        val status = "|(${board.board[i.first][i.second].status[2]})|"
-                        board.board[i.first][i.second].string2Piece(status)
-                    }
-                }
-                return board.printBoard()
-            }
-
-            // setzt den status des boards zurück, der mit show moves veränderd wurde
-            fun returnShowPossibleMoves(possibleMoves: List<Pair<Int, Int>>){
-
-                for(i in possibleMoves){
-                    if(board.board[i.first][i.second].status.equals("|(_)|") ){
-                        board.board[i.first][i.second].emptyField()
-                    }
-                    else{
-                        board.board[i.first][i.second].char2Piece(board.board[i.first][i.second].status[2])
-                    }
-                }
-            }
-
-            // für Printausgabe
-            fun setPlayer(){
-                if(activeColor == "w"){
-                    player = "Player 1"
-                    color = 'w'
-                }
-                else{
-                    player = "Player 2"
-                    color = 'b'
-                }
-            }
 
 
-            setPlayer()
+            // aus der Nutzereingabe wird eine Figur der Variablen "piece zugewiesen"
+            if(!pieceFrom()) continue
 
-            val input = board.inputPositionToXy(player, "welche Figur willst du bewegen?")
 
-            if(input in board.piecePositions && board.piecePositions[input]?.color == color){
-                piece = board.piecePositions[input]!!
-            }
-            else {
-                println("Not a valid Move!")
+            // Liste mit Positionen auf die das piece ziehen kann
+            possibleMoves = allPossibleMoves(board, piece)
+
+
+            // unterbricht den Loop, wenn keine Züge möglich sind
+            if(possibleMoves.size == 0) {
+                println("Keine gültigen Züge mit der Figur ${piece.sign}!")
                 continue
             }
 
-            val possibleMoves: List<Pair<Int, Int>>
-            if(piece.color == 'w')  possibleMoves = board.allPossibleMoves(board).first[piece]!!
-            else possibleMoves = board.allPossibleMoves(board).second[piece]!!
 
-            print("${piece.sign} hat folgende Möglichkeiten zu Ziehen: ")           // Ausgabe möglicher Züge
+            // Ausgabe der Liste möglicher Züge
+            print("${piece.sign} hat folgende Möglichkeiten zu Ziehen: ")
             for(move in possibleMoves) print("${board.xyToBoardposition(move)} /")
             println()
 
-            if(possibleMoves.size == 0) {
-                println("Keine gültigen Züge mit der Figur ${piece.sign}!")
-                if(board.defendCheck.size != 0) println("${player} dein König steht im Schach!")
-                continue
+
+            // zeigt mögliche Züge auf dem Board
+            board.showPossibleMoves(possibleMoves)
+
+
+            // hier findet die Eingabe statt auf welches Feld gezogen werden soll
+            val inputToXy = board.inputPositionToXy(player,  "wohin willst du ziehen?")
+
+
+            //  setzt werte im Bord zurück die in "board.showPossibleMoves" gändert wurden
+            //board.returnShowPossibleMoves(possibleMoves)
+            board.setPlayerOnBoard()
+
+
+            // führt den gewählten Zug aus, wenn er gültig ist
+            if(inputToXy in board.coordinates){
+                if (setMove(inputToXy, possibleMoves, piece, board)){
+                    println("${piece.sign} zieht auf ${board.xyToBoardposition(piece.position)}")
+                    return piece
+                }else println("Kein gültiger Zug!")
             }
-
-            showPossibleMoves(possibleMoves) // Printausgabe ändert werte im Bord
-
-            val inputTo = board.inputPositionToXy(player,  "wohin willst du ziehen?")
-
-            returnShowPossibleMoves(possibleMoves)
-
-            if (setMove(inputTo.first, inputTo.second, possibleMoves, piece)) return piece
 
 
         }
