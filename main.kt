@@ -11,11 +11,11 @@ fun main(){
 
 
     // lädt ein neues Spiel
-    // game.board.fen.fen2Board(game.board)
+    game.board.fen.fen2Board(game.board)
 
 
-    //lädt ein angefangenes Spiel
-    game.board.fen.loadFen(game.board, "4k3/8/8/5q2/8/8/r2Q4/4K3/ b - - 0 3")
+    //lädt ein angefangenes Spiel aus einem Fen
+    // game.board.fen.loadFen(game.board, "4k3/8/8/5q2/8/8/r2Q4/4K3/ b - - 0 3")
     // enPassant      ---rnbqkbnr/ppppppp1/8/4P3/6Pp/8/PPPP1P1P/RNBQKBNR/ b KQkq g3 0 3
     //
     //  4k3/8/8/5q2/8/8/r2Q4/4K3/ b - - 0 3

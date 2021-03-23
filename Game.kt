@@ -8,10 +8,10 @@ class Game: Move(){
     lateinit var piece: Player
     lateinit var possibleMoves: List<Pair<Int, Int>>
 
-
-
+    // überprüft den game Status
     fun checkGamestatus(piece: Player){
 
+        // überprüft ob eine Figur im Schach steht
         fun checkKingIsCheck(piece: Player) {
             var king: Player? = null
             var tempPossibleMoves = mapOf<Player, List<Pair<Int, Int>>>()
@@ -36,6 +36,7 @@ class Game: Move(){
             }
         }
 
+        // überprüft ob ein Schachmatt noch verhindert werden kann
         fun checkKingIsCheckmate(piece: Player){
             var king: Player? = null
             var tempPossibleMoves = mapOf<Player, List<Pair<Int, Int>>>()
@@ -72,6 +73,7 @@ class Game: Move(){
 
     }
 
+    // input funktion für reale Spieler
     fun movePlayer(activeColor: String): Player {
         color = activeColor.single()
 
