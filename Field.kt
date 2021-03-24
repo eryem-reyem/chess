@@ -1,5 +1,5 @@
 // status des Feldes in "board.board"
-class Field() {
+class Field {
     var status: String = "| _ |"
 
     // für Felder mit Pieces

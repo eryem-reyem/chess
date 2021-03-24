@@ -5,8 +5,8 @@ class Game: Move(){
     var gameActiv = true
     var isCheck = false
     var isCheckmate = false
-    lateinit var piece: Player
-    lateinit var possibleMoves: List<Pair<Int, Int>>
+    private lateinit var piece: Player
+    private lateinit var possibleMoves: List<Pair<Int, Int>>
 
     // überprüft den game Status
     fun checkGamestatus(piece: Player){
@@ -14,14 +14,14 @@ class Game: Move(){
         // überprüft ob eine Figur im Schach steht
         fun checkKingIsCheck(piece: Player) {
             var king: Player? = null
-            var tempPossibleMoves = mapOf<Player, List<Pair<Int, Int>>>()
+            val tempPossibleMoves = if(piece.color == 'w') tempPossibleMoves(board).first
+                                    else tempPossibleMoves(board).second
+
 
             for(a_piece in board.piecePositions){
                 if(a_piece.value is King && a_piece.value.color != piece.color) king = a_piece.value
             }
 
-            if(piece.color == 'w') tempPossibleMoves = tempPossibleMoves(board).first
-            else tempPossibleMoves = tempPossibleMoves(board).second
 
             if(king != null){
                 for(a_piece in tempPossibleMoves){
@@ -39,14 +39,14 @@ class Game: Move(){
         // überprüft ob ein Schachmatt noch verhindert werden kann
         fun checkKingIsCheckmate(piece: Player){
             var king: Player? = null
-            var tempPossibleMoves = mapOf<Player, List<Pair<Int, Int>>>()
+            val tempPossibleMoves = if(piece.color == 'w') tempPossibleMoves(board).second
+                                    else tempPossibleMoves(board).first
 
             for(a_piece in board.piecePositions){
                 if(a_piece.value is King && a_piece.value.color != piece.color) king = a_piece.value
             }
 
-            if(piece.color == 'w') tempPossibleMoves = tempPossibleMoves(board).second
-            else tempPossibleMoves = tempPossibleMoves(board).first
+
 
 
             if(king != null){
@@ -60,24 +60,60 @@ class Game: Move(){
             }
         }
 
+        // überprüft unterschiedliche Patt Situationen
+        fun checkPutt(piece: Player): Boolean {
+            if(board.fen.halfMoveClock == 75){
+                gameActiv = false
+                return true
+            }
+
+            if(board.piecePositions.size == 2){
+                gameActiv = false
+                return true
+            }
+
+            val tempPossibleMoves = if(piece.color == 'w') tempPossibleMoves(board).second
+                                    else tempPossibleMoves(board).first
+            var movesPossible = false
+
+            for(a_piece in tempPossibleMoves){
+                if(a_piece.value.isNotEmpty()){
+                    movesPossible = true
+                }
+            }
+            if(!movesPossible){
+                gameActiv = false
+                return true
+            }
+
+            if(board.piecePositions.size == 3){
+                for(a_piece in board.piecePositions.values){
+                    if(a_piece is Knight || a_piece is Bishop){
+                        gameActiv = false
+                        return true
+                    }
+                }
+            }
+
+            return false
+        }
+
 
         checkKingIsCheck(piece)
 
         if(isCheck) checkKingIsCheckmate(piece)
 
-        if(isCheckmate){
-            isCheck = false
-            gameActiv = false
-        }
+        if(isCheckmate) isCheck = false
+        else checkPutt(piece)
 
 
     }
 
-    // input funktion für reale Spieler
+    // Shell input Funktion für reale Spieler
     fun movePlayer(activeColor: String): Player {
         color = activeColor.single()
 
-        if(activeColor == "w") player = "Player 1" else player = "Player 2"
+        player = if(activeColor == "w") "Player 1" else "Player 2"
 
         while (true){
             // Nutzereingbe welche figur ziehen soll
@@ -108,7 +144,7 @@ class Game: Move(){
 
 
             // unterbricht den Loop, wenn keine Züge möglich sind
-            if(possibleMoves.size == 0) {
+            if(possibleMoves.isEmpty()) {
                 println("Keine gültigen Züge mit der Figur ${piece.sign}!")
                 continue
             }
@@ -134,14 +170,13 @@ class Game: Move(){
 
 
             // führt den gewählten Zug aus, wenn er gültig ist
-            if(inputToXy in board.coordinates){
-                if (setMove(inputToXy, possibleMoves, piece, board)){
-                    println("${piece.sign} zieht auf ${board.xyToBoardposition(piece.position)}")
+            if(inputToXy in board.coordinates) {
+                if (setMove(inputToXy, possibleMoves, piece, board)) {
+                    if (board.fen.castling == "") board.fen.castling = "-"
                     return piece
-                }else println("Kein gültiger Zug!")
+                } else println("Kein gültiger Zug!")
             }
-
-
         }
     }
+
 }

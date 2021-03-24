@@ -1,15 +1,14 @@
-class Pon(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(position, sign) {
+class Pon(position: Pair<Int, Int>, sign: Char, override val color: Char = 'w'): Player(position, sign) {
     override val moves = if (color == 'b') {
-        mutableListOf<Pair<Int, Int>>(
+        mutableListOf(
             Pair(1, 0)
         )
     } else {
-        mutableListOf<Pair<Int, Int>>(
+        mutableListOf(
             Pair(-1, 0)
         )
     }
     override val maxSteps: Int = 1
-    override val color = color
 
     override fun getPossibleMoves(board: Board): MutableList<Pair<Int, Int>> {
         var possibleMoves = mutableListOf<Pair<Int, Int>>()

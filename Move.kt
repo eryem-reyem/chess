@@ -1,7 +1,6 @@
 open class Move {
-    var capturedWhitePieces = mutableListOf<Player>()
-    var capturedBlackPieces = mutableListOf<Player>()
-    lateinit var allPossibleMoves: Pair<Map<Player, List<Pair<Int, Int>>>, Map<Player, List<Pair<Int, Int>>>>
+    private var capturedWhitePieces = mutableListOf<Player>()
+    private var capturedBlackPieces = mutableListOf<Player>()
 
 
     // führt einen temporären Zug in "board.board" aus und checked ob der eigene König danch im Schach steht
@@ -18,13 +17,12 @@ open class Move {
 
         val tempMoves = tempPossibleMoves(board)
 
-        var tempList = if(piece.color == 'w'){
-            tempMoves.second
-        }else tempMoves.first
+        val tempList = if(piece.color == 'w') tempMoves.second
+                        else tempMoves.first
 
         for(a_piece in tempList){
-            for(move in a_piece.value){
-                if(move == king.position){
+            for(a_move in a_piece.value){
+                if(a_move == king.position){
                     validMove = false
                     break
                 }
@@ -44,10 +42,10 @@ open class Move {
     // gibt listen mit gültigen Zügen für eine Figur zurück
     fun allPossibleMoves(board: Board, piece: Player): List<Pair<Int, Int>> {
         val tempPossibleMoves = tempPossibleMoves(board)
-        var allPossibleWhiteMoves = tempPossibleMoves.first as HashMap<Player, List<Pair<Int, Int>>>
-        var allPossibleBlackMoves = tempPossibleMoves.second as HashMap<Player, List<Pair<Int, Int>>>
+        val allPossibleWhiteMoves = tempPossibleMoves.first as HashMap<Player, List<Pair<Int, Int>>>
+        val allPossibleBlackMoves = tempPossibleMoves.second as HashMap<Player, List<Pair<Int, Int>>>
         var king: Player? = null
-        var realPossibleMoves = mutableListOf<Pair<Int, Int>>()
+        val realPossibleMoves = mutableListOf<Pair<Int, Int>>()
 
 
         for(a_piece in board.piecePositions) if(a_piece.value is King && a_piece.value.color == piece.color) king = a_piece.value
@@ -70,22 +68,24 @@ open class Move {
 
     // gibt listen mit möglichen Zügen für eine Figur zurück
     fun tempPossibleMoves(board: Board): Pair<Map<Player, List<Pair<Int, Int>>>, Map<Player, List<Pair<Int, Int>>>> {
-        var allPossibleWhiteMoves = hashMapOf<Player, List<Pair<Int, Int>>>()
-        var allPossibleBlackMoves = hashMapOf<Player, List<Pair<Int, Int>>>()
-        for(element in board.piecePositions){
+        val allPossibleWhiteMoves = hashMapOf<Player, List<Pair<Int, Int>>>()
+        val allPossibleBlackMoves = hashMapOf<Player, List<Pair<Int, Int>>>()
+        for (element in board.piecePositions) {
             val possibleMoves = element.value.getPossibleMoves(board)
-            if(element.value.color == 'w') allPossibleWhiteMoves[element.value] = possibleMoves
-            else if(element.value.color == 'b') allPossibleBlackMoves[element.value] = possibleMoves
+            if (element.value.color == 'w') allPossibleWhiteMoves[element.value] = possibleMoves
+            else if (element.value.color == 'b') allPossibleBlackMoves[element.value] = possibleMoves
         }
-        val allPossibleMoves = Pair<Map<Player, List<Pair<Int, Int>>>, Map<Player, List<Pair<Int, Int>>>>(allPossibleWhiteMoves, allPossibleBlackMoves)
-        return allPossibleMoves
+
+        return Pair<Map<Player, List<Pair<Int, Int>>>, Map<Player, List<Pair<Int, Int>>>>(
+            allPossibleWhiteMoves,
+            allPossibleBlackMoves )
     }
 
 
     // führt einen Zug aus und ändert alle nötigen Variablen
     fun setMove(input: Pair<Int, Int>, possibleMoves: List<Pair<Int, Int>>, piece: Player, board: Board): Boolean{
         // Schlägt eine gegnerische Figur, wenn diese auf dem Zugfeld steht
-        fun capturePiece(input: Pair<Int, Int>){
+        fun capturePiece(input: Pair<Int, Int>): Player? {
             val toCapture = board.piecePositions[input]
 
             if (toCapture != null) {                            // Setzt Piece auf Tod und fügt es einer Liste für tote Pieces zu
@@ -97,8 +97,9 @@ open class Move {
 
                 board.fen.halfMoveClock = 0
 
-                println("Capture Piece: ${toCapture.sign}")
+                return toCapture
             }
+            return null
         }
 
         // Schlägt einen Pon EnPassant
@@ -115,7 +116,7 @@ open class Move {
 
         // führt Castle aus und ändert "fen.casteling"
         fun casteling(piece: Player, board: Board, input: Pair<Int, Int>): Boolean {
-            var castle: Boolean = false
+            var castle = false
 
             fun castle(): Boolean {
                 if(input == Pair(0, 2)){
@@ -125,7 +126,7 @@ open class Move {
 
                     if (king != null && rook != null) {
                         // für König
-                        board.piecePositions.put(Pair(0, 2), king)
+                        board.piecePositions[Pair(0, 2)] = king
                         board.piecePositions.minusAssign(Pair(0, 4))
                         board.board[0][2].char2Piece(king.sign)
                         board.board[0][4].emptyField()
@@ -133,7 +134,7 @@ open class Move {
                         king.position = Pair(0, 2)
 
                         // für rook
-                        board.piecePositions.put(Pair(0, 3), rook)
+                        board.piecePositions[Pair(0, 3)] = rook
                         board.piecePositions.minusAssign(Pair(0, 0))
                         board.board[0][3].char2Piece(rook.sign)
                         board.board[0][0].emptyField()
@@ -151,7 +152,7 @@ open class Move {
 
                     if (king != null && rook != null) {
                         // für König
-                        board.piecePositions.put(Pair(0, 6), king)
+                        board.piecePositions[Pair(0, 6)] = king
                         board.piecePositions.minusAssign(Pair(0, 4))
                         board.board[0][6].char2Piece(king.sign)
                         board.board[0][4].emptyField()
@@ -159,7 +160,7 @@ open class Move {
                         king.position = Pair(0, 6)
 
                         // für rook
-                        board.piecePositions.put(Pair(0, 5), rook)
+                        board.piecePositions[Pair(0, 5)] = rook
                         board.piecePositions.minusAssign(Pair(0, 7))
                         board.board[0][5].char2Piece(rook.sign)
                         board.board[0][7].emptyField()
@@ -176,7 +177,7 @@ open class Move {
 
                     if (king != null && rook != null) {
                         // für König
-                        board.piecePositions.put(Pair(7, 2), king)
+                        board.piecePositions[Pair(7, 2)] = king
                         board.piecePositions.minusAssign(Pair(7, 4))
                         board.board[7][2].char2Piece(king.sign)
                         board.board[7][4].emptyField()
@@ -184,7 +185,7 @@ open class Move {
                         king.position = Pair(7, 2)
 
                         // für rook
-                        board.piecePositions.put(Pair(7, 3), rook)
+                        board.piecePositions[Pair(7, 3)] = rook
                         board.piecePositions.minusAssign(Pair(7, 0))
                         board.board[7][3].char2Piece(rook.sign)
                         board.board[7][0].emptyField()
@@ -201,7 +202,7 @@ open class Move {
 
                     if (king != null && rook != null) {
                         // für König
-                        board.piecePositions.put(Pair(7, 6), king)
+                        board.piecePositions[Pair(7, 6)] = king
                         board.piecePositions.minusAssign(Pair(7, 4))
                         board.board[7][6].char2Piece(king.sign)
                         board.board[7][4].emptyField()
@@ -209,7 +210,7 @@ open class Move {
                         king.position = Pair(7, 6)
 
                         // für rook
-                        board.piecePositions.put(Pair(7, 5), rook)
+                        board.piecePositions[Pair(7, 5)] = rook
                         board.piecePositions.minusAssign(Pair(7, 7))
                         board.board[7][5].char2Piece(rook.sign)
                         board.board[7][7].emptyField()
@@ -252,7 +253,10 @@ open class Move {
 
         if(input in possibleMoves){
             // Schlägt eine gegnerische Figur, wenn diese auf dem Zugfeld steht
-            if(input in board.piecePositions) capturePiece(input)
+            if(input in board.piecePositions){
+                val captured = capturePiece(input)
+                if(captured != null) println("${piece.sign} schlägt ${captured.sign} auf ${board.xyToBoardposition(input)}.")
+            }else println("${piece.sign} zieht auf ${board.xyToBoardposition(input)}.")
 
 
             // Schlägt einen Pon EnPassant
@@ -272,8 +276,8 @@ open class Move {
             }
 
 
-            board.piecePositions.minusAssign(Pair<Int, Int>(piece.position.first, piece.position.second))
-            board.piecePositions.put(input, piece)
+            board.piecePositions.minusAssign(Pair(piece.position.first, piece.position.second))
+            board.piecePositions[input] = piece
             piece.position = input
 
             board.setPlayerOnBoard()

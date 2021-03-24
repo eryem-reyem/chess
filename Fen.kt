@@ -1,20 +1,20 @@
 import java.io.File
 
 class Fen {
-    var newFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    val fen = newFen.split(' ')
-    var fenList = mutableListOf<Map<Int, String>>()
+    private var newFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    private val fen = newFen.split(' ')
 
-    var piecePosition = fen[0]
+    private var piecePosition = fen[0]
     var activeColor = fen[1]
     var castling = fen[2]
     var enPassant = fen[3]
     var halfMoveClock = fen[4].toInt()
     var fullMoveNumber = fen [5].toInt()
 
+    // fügt aus dem String "piecePositions" die Pieces dem Dict/Map "board/piecePositions" hinzu
     fun fen2Board(board: Board){
-        var y: Int = 0
-        var x: Int = 0
+        var y = 0
+        var x = 0
 
         for(element in piecePosition){
             if(element.isDigit()) {
@@ -23,19 +23,20 @@ class Fen {
             }
             else if(element.isLetter()){
                 var piece: Player = King(Pair(y,x),element, 'x')
-                var color: Char
-
-                if(element.isLowerCase()) color = 'b' else color = 'w'
-
-                if(element.toLowerCase() == 'k') piece = King(Pair(y,x), element, color)
-                else if(element.toLowerCase() == 'q') piece = Queen(Pair(y,x), element, color)
-                else if(element.toLowerCase() == 'b') piece = Bishop(Pair(y,x), element, color)
-                else if(element.toLowerCase() == 'n') piece = Knight(Pair(y,x), element, color)
-                else if(element.toLowerCase() == 'r') piece = Rook(Pair(y,x), element, color)
-                else if(element.toLowerCase() == 'p') piece = Pon(Pair(y,x), element, color)
+                val color = if(element.isLowerCase()) 'b' else 'w'
 
 
-                board.piecePositions.put(Pair(y,x),piece)
+                when {
+                    element.toLowerCase() == 'k' -> piece = King(Pair(y,x), element, color)
+                    element.toLowerCase() == 'q' -> piece = Queen(Pair(y,x), element, color)
+                    element.toLowerCase() == 'b' -> piece = Bishop(Pair(y,x), element, color)
+                    element.toLowerCase() == 'n' -> piece = Knight(Pair(y,x), element, color)
+                    element.toLowerCase() == 'r' -> piece = Rook(Pair(y,x), element, color)
+                    element.toLowerCase() == 'p' -> piece = Pon(Pair(y,x), element, color)
+                }
+
+
+                board.piecePositions[Pair(y,x)] = piece
                 x += 1
             }
             else if(element == '/'){
@@ -43,46 +44,8 @@ class Fen {
                 x = 0
             }
         }
-    }       // fügt aus dem String "piecePositions" Pieces Klassen dem Dict/Map "board/piecePositions" hinzu
-
-    fun board2Fen(board: Board, color: Char): String {
-        var string: String = ""
-        var count = 0
-
-        for(y in board.board){
-            for(x in y){
-                if(x.status[2] == '_') count += 1
-                else{
-                    if(count != 0) string += count.toString()
-                    string += x.status[2]
-                    count = 0
-                }
-            }
-            if(count != 0) string += count
-            string += '/'
-            count = 0
-        }
-
-        string = string.subSequence(0, string.length).toString()
-
-        if(color == 'w'){
-            string += " b"
-            activeColor = "b"
-        }
-        else{
-            string += " w"
-            activeColor = "w"
-        }
-
-        string += " $castling"
-
-        string += " $enPassant"
-
-        string += " $halfMoveClock"
-
-        string += " $fullMoveNumber"
-        return string
     }
+
 
     fun loadFen(board: Board, fen: String){
         piecePosition = fen.split(' ')[0]
@@ -94,9 +57,52 @@ class Fen {
         fen2Board(board)
     }
 
-    fun saveFen(fen: String){
+
+    fun saveFen(board: Board, color: Char){
+        fun board2Fen(board: Board, color: Char): String {
+            var string = ""
+            var count = 0
+
+            for(y in board.board){
+                for(x in y){
+                    if(x.status[2] == '_') count += 1
+                    else{
+                        if(count != 0) string += count.toString()
+                        string += x.status[2]
+                        count = 0
+                    }
+                }
+                if(count != 0) string += count
+                string += '/'
+                count = 0
+            }
+
+            string = string.subSequence(0, string.length).toString()
+
+            if(color == 'w'){
+                string += " b"
+                activeColor = "b"
+            }
+            else{
+                string += " w"
+                activeColor = "w"
+            }
+
+            string += " $castling"
+
+            string += " $enPassant"
+
+            string += " $halfMoveClock"
+
+            string += " $fullMoveNumber"
+            return string
+        }
+
+        val fen = board2Fen(board, color)
+
         File("data/data.txt").appendText("\n $fen")
     }
+
 
     fun setEnPassant(input: Pair<Int, Int>, board: Board, color: Char, possibleMoves: List<Pair<Int, Int>>) {
         val rightSide = Pair(input.first, input.second + 1)
@@ -104,12 +110,10 @@ class Fen {
         val pieceRight = board.piecePositions[rightSide]
         val pieceLeft = board.piecePositions[leftSide]
 
-        if (pieceRight is Pon && pieceRight.color != color ||
-            pieceLeft is Pon && pieceLeft.color != color
-        ) {
-            enPassant = board.xyToBoardposition(possibleMoves[0])
-
-        } else enPassant = "-"
+        enPassant = if (pieceRight is Pon && pieceRight.color != color ||
+            pieceLeft is Pon && pieceLeft.color != color) {
+            board.xyToBoardposition(possibleMoves[0])
+            } else "-"
     }
 
 

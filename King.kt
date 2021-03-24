@@ -1,5 +1,5 @@
-class King(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(position, sign) {
-    override val moves = listOf<Pair<Int, Int>>(
+class King(position: Pair<Int, Int>, sign: Char, override val color: Char = 'w'): Player(position, sign) {
+    override val moves = listOf(
         Pair(1, 1),
         Pair(1, -1),
         Pair(-1, 1),
@@ -10,7 +10,6 @@ class King(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(posi
         Pair(1, 0)
     )
     override val maxSteps: Int = 1
-    override val color = color
     var castelingPositions = mutableListOf<Pair<Int, Int>>()
 
     /*override fun realPossible(board: Board, possibleMoves: MutableList<Pair<Int, Int>>): MutableList<Pair<Int, Int>> {

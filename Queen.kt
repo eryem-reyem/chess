@@ -1,5 +1,5 @@
-class Queen(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(position, sign) {
-    override val moves = listOf<Pair<Int, Int>>(
+class Queen(position: Pair<Int, Int>, sign: Char, override val color: Char = 'w'): Player(position, sign) {
+    override val moves = listOf(
         Pair(1, 1),
         Pair(1, -1),
         Pair(-1, 1),
@@ -10,5 +10,4 @@ class Queen(position: Pair<Int, Int>, sign: Char, color: Char = 'w'): Player(pos
         Pair(1, 0)
     )
     override val maxSteps: Int = 8
-    override val color = color
 }
